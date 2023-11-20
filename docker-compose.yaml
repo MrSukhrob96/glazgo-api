@@ -1,0 +1,67 @@
+version: '3.8'
+
+networks:
+  glazgo:
+    driver: bridge
+
+services:
+  glazgo_app:
+    image: nginx:alpine
+    container_name: glazgo_nginx
+    ports:
+      - "8000:8000" 
+    networks:
+      - glazgo
+    volumes:
+      - .:/var/www/glazgo 
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - glazgo_php
+
+  glazgo_php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: glazgo_php
+    volumes:
+      - .:/var/www/glazgo 
+    ports:
+      - "9000:9000"
+    networks:
+      - glazgo
+    depends_on:
+      - glazgo_postgres
+      - glazgo_rabbitmq
+      - glazgo_redis
+
+  glazgo_postgres: 
+    image: postgres:latest
+    container_name: glazgo_postgres
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: glazgo_user
+      POSTGRES_PASSWORD: glazgo_password
+      POSTGRES_DB: glazgo
+    ports:
+      - "5432:5432"
+    networks:
+      - glazgo
+
+  glazgo_rabbitmq:
+    image: "rabbitmq:management"
+    container_name: glazgo_rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    networks:
+      - glazgo
+
+  glazgo_redis:
+    image: "redis:latest"
+    container_name: glazgo_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - glazgo
+
