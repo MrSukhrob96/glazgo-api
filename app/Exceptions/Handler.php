@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Request;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -23,8 +24,13 @@ class Handler extends ExceptionHandler
      */
     public function register(): void
     {
-        $this->reportable(function (Throwable $e) {
-            //
+        $this->renderable(function (\Illuminate\Http\Exceptions\PostTooLargeException $e, Request $request) {
+            return response()->error('File size is too large', [], 500);
         });
+        
+        $this->renderable(function (\Illuminate\Database\QueryException $e, Request $request) {
+            return response()->error('error with a connection database!', [], 500);
+        });
+
     }
 }
