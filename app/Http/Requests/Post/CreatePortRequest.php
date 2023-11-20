@@ -3,6 +3,8 @@
 namespace App\Http\Requests\Post;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class CreatePortRequest extends FormRequest
 {
@@ -22,7 +24,24 @@ class CreatePortRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'articles' => 'file|mimes:xlsx,xls,csv'
+            'articles' => 'file|mimes:xlsx,xls,csv|max:5120'
         ];
+    }
+
+    public function messages()
+    {
+        return [
+            'file' => 'The articles field must be a file'
+        ];
+    }
+
+    public function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(response()->json([
+            'status'   => false,
+            'message'   => $validator->errors()->first(),
+            'errors' => [],
+            'data'      => []
+        ], 400));
     }
 }
